@@ -28,8 +28,8 @@ backend registration API is required. Its transport dependencies belong to that 
 
 ## Implement the connection contract
 
-Implement these methods. `brands=None` extends the consumer protocol for
-applications that need inventory across all brands:
+Expose `stack_type` before connecting, and implement these methods.
+Use `brands=None` to select inventory across all brands:
 
 ```python
 from collections.abc import Callable
@@ -39,6 +39,11 @@ from lorawan_connection import DeviceEvent, Downlink, Unsubscribe
 
 
 class BackendContract(Protocol):
+    @property
+    def stack_type(self) -> str:
+        """Return the catalog namespace used by every device on this connection."""
+        ...
+
     async def async_subscribe(
         self,
         *,
@@ -69,8 +74,8 @@ exposing `available` and `error` for connection state.
 
 ## Build complete inventory snapshots
 
-Choose a stable `stack` string for the server's catalog namespace. Preserve its
-native brand and model IDs. Do not identify models from display names or payloads.
+Set `stack_type` to a stable string for the server's catalog namespace, such as `"example"`.
+Use `self.stack_type` for each descriptor's `stack`. Preserve native brand and model IDs. Do not identify models from display names or payloads.
 
 ```python
 from datetime import UTC, datetime

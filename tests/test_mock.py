@@ -20,6 +20,13 @@ from lorawan_connection.mock import MockConnection
 from .conftest import DESCRIPTOR, NOW, DeviceModel, inventory
 
 
+@pytest.mark.parametrize("stack_type", ["chirpstack", "tts"])
+def test_stack_type_before_inventory(stack_type: str) -> None:
+    connection = MockConnection(stack_type=stack_type)
+    assert connection.stack_type == stack_type
+    assert not connection.devices
+
+
 def activity() -> UplinkEvent:
     return UplinkEvent(received_at=NOW, descriptor=DESCRIPTOR, data=b"reading")
 

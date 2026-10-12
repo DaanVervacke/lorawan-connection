@@ -67,6 +67,8 @@ def _target(endpoint: str) -> tuple[str, bool]:
 class TTSConnection:
     """Own independently configured Identity and Application Server connections."""
 
+    stack_type = "tts"
+
     def __init__(
         self,
         endpoint: str,
@@ -233,7 +235,7 @@ class TTSConnection:
                             )
                         devices[eui] = DeviceDescriptor(
                             network_id=self.network_id,
-                            stack="tts",
+                            stack=self.stack_type,
                             dev_eui=eui,
                             application_id=app,
                             name=device.name or device.ids.device_id,

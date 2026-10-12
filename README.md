@@ -101,6 +101,10 @@ activity. Collections select models by catalog identity. Provision devices on th
 server before connecting. The application owns connection startup, recovery, and shutdown;
 missed telemetry is not replayed.
 
+Connections expose `stack_type`: `"chirpstack"` or `"tts"` for the included adapters.
+Every device descriptor uses that value as its `stack`. Custom backends must expose
+their stack type before connecting or delivering inventory.
+
 Use `listener` to subscribe directly to connection events:
 
 ```python

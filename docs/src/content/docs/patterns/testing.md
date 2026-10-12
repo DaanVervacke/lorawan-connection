@@ -33,7 +33,7 @@ def connection() -> MockConnection:
         model_id=S2101.identifiers["chirpstack"][1],
         brand_id=S2101.identifiers["chirpstack"][0],
     )
-    return MockConnection([descriptor])
+    return MockConnection([descriptor], stack_type=descriptor.stack)
 
 
 @pytest_asyncio.fixture
@@ -143,7 +143,7 @@ async def test_relay_command() -> None:
         model_id=LT22222.identifiers["chirpstack"][1],
         brand_id=LT22222.identifiers["chirpstack"][0],
     )
-    connection = MockConnection([descriptor])
+    connection = MockConnection([descriptor], stack_type=descriptor.stack)
     devices = DraginoDevices(connection)
     await devices.async_setup()
     device = devices.devices[descriptor.dev_eui]

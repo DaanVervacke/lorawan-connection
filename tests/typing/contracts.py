@@ -30,6 +30,8 @@ connection: Connection = ChirpStackConnection(
     "http://localhost:8080", "key", application_ids=[], network_id="network"
 )
 mock_connection: Connection = MockConnection()
+assert_type(connection.stack_type, str)
+assert_type(mock_connection.stack_type, str)
 model_class: type[S2101] = S2101
 collection: DeviceCollection[S2101] = DeviceCollection(connection, [S2101])
 declared: DeviceCollection[S2101 | S2102] = SenseCapDeviceCollection(connection)

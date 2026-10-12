@@ -94,6 +94,7 @@ async def test_snapshot_failure_preserves_inventory(
 
 async def test_inventory_changes(connection: ChirpStackConnection) -> None:
     """Emit only changes and stop a removed device's stream."""
+    assert connection.stack_type == DESCRIPTOR.stack == "chirpstack"
     listener = Mock()
     with (
         patch.object(

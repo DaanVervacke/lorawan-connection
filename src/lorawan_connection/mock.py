@@ -25,7 +25,13 @@ class _Subscriber:
 class MockConnection:
     """Replay devices, emit events, and record commands without network I/O."""
 
-    def __init__(self, devices: Sequence[DeviceDescriptor] = ()) -> None:
+    def __init__(
+        self,
+        devices: Sequence[DeviceDescriptor] = (),
+        *,
+        stack_type: str = "chirpstack",
+    ) -> None:
+        self.stack_type = stack_type
         self.devices: dict[str, DeviceDescriptor] = {}
         self.downlinks: dict[str, Downlink] = {}
         self._network_id: str | None = None

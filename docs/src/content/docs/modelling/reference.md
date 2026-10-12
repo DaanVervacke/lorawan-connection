@@ -3,6 +3,12 @@ title: Collection reference
 description: Collection lifecycle, listener order, and cleanup behavior.
 ---
 
+## Changes in 0.14
+
+Connections expose `stack_type`, the catalog namespace shared by their devices.
+Custom backends must provide this string before connecting.
+`MockConnection` accepts `stack_type` as a keyword argument and defaults to `"chirpstack"`.
+
 ## Changes in 0.13
 
 Subscription parameters are named `listener`. Replace `callback=` with `listener=`
@@ -121,6 +127,8 @@ Registered models inherit `Device` and accept a descriptor as their constructor 
 ### Connection protocol
 
 The backend-neutral `Connection` protocol exposes:
+
+- `stack_type: str` identifies the catalog namespace. Each descriptor uses the same value in `stack`.
 
 - `async_subscribe(*, brands, listener) -> Unsubscribe` takes a `frozenset[tuple[str, int | str]]` or `None` and reports matching existing
   devices before returning, then live events. `None` selects all devices; an empty set selects none. Arguments are keyword-only.

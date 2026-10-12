@@ -15,6 +15,11 @@ class ConnectionUnavailable(Exception):
 class Connection(Protocol):
     """Subscribe to a network's devices and send commands."""
 
+    @property
+    def stack_type(self) -> str:
+        """Return the catalog namespace used by this connection."""
+        ...
+
     async def async_subscribe(
         self,
         *,

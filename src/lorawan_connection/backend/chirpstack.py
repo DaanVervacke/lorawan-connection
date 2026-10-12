@@ -113,6 +113,8 @@ class ChirpStackConnection:
     can create a fresh connection. No replay/history contract is provided.
     """
 
+    stack_type = "chirpstack"
+
     def __init__(
         self,
         endpoint: str,
@@ -332,7 +334,7 @@ class ChirpStackConnection:
                     vendor_id,
                     model,
                     manufacturer,
-                    stack="chirpstack",
+                    stack=self.stack_type,
                 )
         return snapshot
 

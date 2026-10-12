@@ -56,6 +56,7 @@ async def test_uplink_and_catalog_model(connection: TTSConnection) -> None:
     models = SenseCapDeviceCollection(connection)
     await models.async_setup()
     model = models.devices[EUI]
+    assert connection.stack_type == model.descriptor.stack == "tts"
     await connection.handle_message(
         message(
             "ApplicationUp",
@@ -352,6 +353,7 @@ async def test_dragino_output_command(
     models = DraginoDevices(connection)
     await models.async_setup()
     model = models.devices[EUI]
+    assert connection.stack_type == model.descriptor.stack == "tts"
     connection._application.DownlinkQueuePush = AsyncMock()
     pending = asyncio.create_task(getattr(model, method)(1, True))
     await asyncio.sleep(0)
