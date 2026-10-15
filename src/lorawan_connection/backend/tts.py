@@ -373,7 +373,7 @@ class TTSConnection:
         )
 
     def on_disconnect(self, listener: Callable[[], None]) -> Unsubscribe:
-        """Notify after connection loss or closure. Callers own recovery."""
+        """Notify after connection loss. Callers own recovery."""
         if self._closed:
             raise ConnectionUnavailable("TTS connection is closed")
         return subscribe(self._disconnect, lambda _: listener())
