@@ -35,7 +35,7 @@ python -m my_sensors --backend chirpstack --server https://chirpstack.example.co
 `--backend` selects `chirpstack` (the default) or `tts`. If its extra is missing,
 the helper prints an installation command.
 
-Use `CHIRPSTACK_API_KEY` instead of `--api-key-file` if you keep the key in the environment.
+Use `CHIRPSTACK_API_KEY` if you keep the key in the environment.
 The helper discovers applications across all tenants accessible to the API key
 at startup. Pass `--tenant UUID` to restrict it to one tenant, or repeat
 `--application UUID` to select specific applications. Keys that cannot list tenants

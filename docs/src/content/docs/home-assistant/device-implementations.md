@@ -89,7 +89,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SenseCapConfigEntry) -> 
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: SenseCapConfigEntry) -> bool:
-    """Unload entities; the manager releases the collection and coordinators."""
+    """Unload entities. The manager releases the collection and coordinators."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 ```
 
@@ -155,7 +155,7 @@ class SenseCapCoordinator(DataUpdateCoordinator[S2101]):
 ```
 
 Passing `config_entry=None` lets the manager retire coordinators when their models
-leave the collection, rather than retaining them until entry unload.
+leave the collection. Coordinators bound to a config entry stay until entry unload.
 
 `device_identifier()` combines the vendor domain, server entry ID, and DevEUI.
 Use it in `DeviceInfo.identifiers` so registry records match the manager's cleanup
@@ -261,7 +261,7 @@ async def async_setup_entry(
 
 
 class SenseCapSensor(LoRaWANEntity[S2101], SensorEntity):
-    """Read typed state; decoding and event interpretation belong to the library."""
+    """Read typed state. Decoding and event interpretation belong to the library."""
 
     coordinator: SenseCapCoordinator
     entity_description: SenseCapSensorDescription

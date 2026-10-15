@@ -48,14 +48,14 @@ Newly observed devices receive an `ADDED` event before their activity is deliver
 
 The internal API is a compatibility dependency, tested against ChirpStack 4.19.2 and
 Python bindings 4.19.0. It requires device event retention to be enabled. ChirpStack can
-send retained events when a stream opens, followed by live events. The backend
-records the local time before opening each device stream, with five seconds of leeway.
-It accepts server receipt timestamps at or after that time minus five seconds and
-drops older events. This also applies to devices discovered later.
+send retained events when a stream opens, followed by live events. The backend records
+the local time before opening each device stream. It accepts server receipt timestamps
+at or after that time minus five seconds and drops older events. This also applies to
+devices discovered later.
 
 Keep the client and ChirpStack clocks synchronized. The filter uses the Redis event
-ID's timestamp, not the sensor's clock. Clock differences can drop new events or
-admit retained ones. Missed telemetry is not recovered.
+ID's timestamp. Clock differences can drop new events or admit retained ones. Missed
+telemetry is not recovered.
 
 ## API reference
 
@@ -103,7 +103,7 @@ Use a tenant API key with write access for commands. A read-only key still suppo
 device discovery and live events; attempted writes raise `DownlinkError`.
 
 `Downlink(dev_eui, f_port, data, confirmed=False, expires_at=None)` contains plaintext
-application bytes. FPort must be 1–223. An optional expiry is a timezone-aware datetime.
+application bytes. FPort must be 1 to 223. An optional expiry is a timezone-aware datetime.
 ChirpStack owns encryption, frame counters, scheduling, and expiry. The helper never
 flushes existing commands or retries an ambiguous RPC result.
 

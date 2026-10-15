@@ -23,8 +23,7 @@ Every event exposes these fields:
 | `descriptor` | `DeviceDescriptor \| None` | Inventory metadata, when available. |
 
 All constructor arguments are keyword-only. Inventory events take `descriptor`
-and `received_at`. Their `network_id` and `dev_eui` are properties of the descriptor,
-not constructor arguments.
+and `received_at`. Their `network_id` and `dev_eui` are properties of the descriptor.
 
 Activity events accept a descriptor or explicit `network_id` and `dev_eui` values.
 With a descriptor, identifiers are derived from it. Conflicting explicit values
@@ -129,8 +128,8 @@ Fixed type: `EventType.JOIN` (`"join"`).
 
 Device battery and radio link status. `margin` is the radio link margin in dB.
 `battery_level` is a percentage; check the power-source and battery-unavailable
-flags before reading it. Zero with `battery_level_unavailable=False` is a known
-zero, not a missing reading.
+flags before reading it. Zero with `battery_level_unavailable=False` is a
+known zero.
 
 Fixed type: `EventType.STATUS` (`"status"`).
 
@@ -195,7 +194,7 @@ Fixed type: `EventType.LOCATION` (`"location"`).
 | `longitude` | `float` | Required |
 | `altitude` | `float` | Required |
 
-## How events reach a device
+## Event delivery
 
 Call `await collection.async_setup()` to subscribe to events for the vendors
 represented by the collection's model classes. A collection without model classes

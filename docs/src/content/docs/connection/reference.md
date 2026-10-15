@@ -73,4 +73,4 @@ Construct a new event to change its type. Use `dataclasses.replace()` only to
 change fields within the same event class.
 
 `DeviceEventData`, `Payload`, the payload protocols, and their `*Data` fixtures
-are removed. Device models consume typed events instead of generated SDK messages.
+are removed. Device models consume typed events.

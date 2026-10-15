@@ -5,7 +5,8 @@ description: Configure a backend, register its connection with LoRaWAN, and own 
 
 :::note[Proposal]
 The shared `lorawan` integration and registration API described here are proposed
-Home Assistant APIs. They are implemented in the PoC, not released in Home Assistant.
+Home Assistant APIs. They are implemented in the PoC and are not released in
+Home Assistant.
 :::
 
 A connection provider configures a server backend and registers it with `lorawan`.

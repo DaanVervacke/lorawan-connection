@@ -54,7 +54,7 @@ class BackendContract(Protocol):
         ...
 
     def on_disconnect(self, listener: Callable[[], None]) -> Unsubscribe:
-        """Subscribe to connection loss; return idempotent cleanup."""
+        """Subscribe to connection loss and return idempotent cleanup."""
         ...
 
     async def async_send_downlink(self, downlink: Downlink) -> str:

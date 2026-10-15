@@ -186,5 +186,5 @@ listeners once. Later subscriptions raise `ConnectionUnavailable`; command sends
 raise `DownlinkError`. Close the collections when notified and create a new mock
 to test reconnection.
 
-Each mock represents one network. Add a device before emitting its activity;
+Each mock is one network. Add a device before emitting its activity;
 unknown devices and events from another network raise `ValueError`.
