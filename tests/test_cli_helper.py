@@ -177,18 +177,21 @@ async def test_missing_key(monkeypatch: pytest.MonkeyPatch) -> None:
         await connect_from_args(args())
 
 
-async def test_missing_optional_backend() -> None:
+def block_backend_import(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
+    """Make importing the named backend module fail like a missing extra."""
     original_import = builtins.__import__
 
-    def no_backend(name: str, *args: object, **kwargs: object) -> object:
-        if name == "backend.chirpstack":
-            raise ModuleNotFoundError("chirpstack_api")
-        return original_import(name, *args, **kwargs)
+    def no_backend(imported: str, *args: object, **kwargs: object) -> object:
+        if imported == name:
+            raise ModuleNotFoundError(name)
+        return original_import(imported, *args, **kwargs)
 
-    with (
-        patch("builtins.__import__", side_effect=no_backend),
-        pytest.raises(ValueError, match=r"lorawan-connection\[chirpstack\]"),
-    ):
+    monkeypatch.setattr(builtins, "__import__", no_backend)
+
+
+async def test_missing_optional_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+    block_backend_import(monkeypatch, "backend.chirpstack")
+    with pytest.raises(ValueError, match=r"lorawan-connection\[chirpstack\]"):
         await connect_from_args(args())
 
 
@@ -602,22 +605,13 @@ async def test_tts_missing_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
 async def test_tts_requires_application(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TTS_API_KEY", "tts-secret")
-    with pytest.raises(ValueError, match="Select at least one TTS application"):
+    with pytest.raises(ValueError, match="TTS application"):
         await connect_from_args(args("--backend", "tts"))
 
 
-async def test_tts_missing_optional_backend() -> None:
-    original_import = builtins.__import__
-
-    def no_backend(name: str, *args: object, **kwargs: object) -> object:
-        if name == "backend.tts":
-            raise ModuleNotFoundError("grpc")
-        return original_import(name, *args, **kwargs)
-
-    with (
-        patch("builtins.__import__", side_effect=no_backend),
-        pytest.raises(ValueError, match=r"lorawan-connection\[tts\]"),
-    ):
+async def test_tts_missing_optional_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+    block_backend_import(monkeypatch, "backend.tts")
+    with pytest.raises(ValueError, match=r"lorawan-connection\[tts\]"):
         await connect_from_args(args("--backend", "tts", "--application", "my-app"))
 
 

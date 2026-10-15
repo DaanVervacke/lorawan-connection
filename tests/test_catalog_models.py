@@ -127,15 +127,32 @@ LHT65_BASE = {
 @pytest.mark.parametrize(
     ("payload", "expected"),
     [
-        (
+        pytest.param(
             "0bf60b0d03760401000000",
             {**LHT65_BASE, "external_input": True, "external_interrupt": False},
+            id="ext-4-input",
         ),
-        ("0bf60b0d03760500640000", {**LHT65_BASE, "illuminance": 100}),
-        ("0bf60b0d0376060bb80000", {**LHT65_BASE, "external_voltage": 3.0}),
-        ("0bf60b0d03760700640000", {**LHT65_BASE, "external_count": 100}),
-        ("0bf60b0d03760800000064", {**LHT65_BASE, "external_count": 100}),
-        (
+        pytest.param(
+            "0bf60b0d03760500640000",
+            {**LHT65_BASE, "illuminance": 100},
+            id="ext-5-illuminance",
+        ),
+        pytest.param(
+            "0bf60b0d0376060bb80000",
+            {**LHT65_BASE, "external_voltage": 3.0},
+            id="ext-6-voltage",
+        ),
+        pytest.param(
+            "0bf60b0d03760700640000",
+            {**LHT65_BASE, "external_count": 100},
+            id="ext-7-count",
+        ),
+        pytest.param(
+            "0bf60b0d03760800000064",
+            {**LHT65_BASE, "external_count": 100},
+            id="ext-8-wide-count",
+        ),
+        pytest.param(
             "09f60b0d03760900000000",
             {
                 "temperature": 28.29,
@@ -144,9 +161,14 @@ LHT65_BASE = {
                 "external_temperature": 25.5,
                 "reported_battery_status": 0,
             },
+            id="ext-9-external-temperature",
         ),
-        ("0bf60b0d0376017fff0000", {**LHT65_BASE, "external_temperature": None}),
-        (
+        pytest.param(
+            "0bf60b0d0376017fff0000",
+            {**LHT65_BASE, "external_temperature": None},
+            id="ext-1-sentinel",
+        ),
+        pytest.param(
             "0bf60b0d03768100640000",
             {
                 "temperature": 28.29,
@@ -156,8 +178,9 @@ LHT65_BASE = {
                 "reported_battery_status": 0,
                 "external_temperature": None,
             },
+            id="ext-1-disconnected",
         ),
-        ("0000000000000f00000000", {}),
+        pytest.param("0000000000000f00000000", {}, id="ext-15-identifier-frame"),
     ],
 )
 def test_lht65_extension_frames(
@@ -170,8 +193,10 @@ def test_lht65_extension_frames(
 @pytest.mark.parametrize(
     ("payload", "match"),
     [
-        ("0000000000000100", "Invalid LHT65 frame length"),
-        ("00000000ffff0100000000", "Humidity outside sensor range"),
+        pytest.param("0000000000000100", "Invalid LHT65 frame length", id="length"),
+        pytest.param(
+            "00000000ffff0100000000", "Humidity outside sensor range", id="humidity"
+        ),
     ],
 )
 def test_lht65_rejects_invalid_frames(payload: str, match: str) -> None:
@@ -179,19 +204,29 @@ def test_lht65_rejects_invalid_frames(payload: str, match: str) -> None:
         LHT65.decode(bytes.fromhex(payload))
 
 
+def test_ts201_alarm_and_mutation() -> None:
+    """The five-byte temperature record carries its alarm and mutation values."""
+    assert TS201.decode(bytes.fromhex("93673401640002")) == {
+        "temperature": 30.8,
+        "temperature_error": False,
+        "temperature_alarm": 2,
+        "temperature_mutation": 10.0,
+    }
+
+
 @pytest.mark.parametrize(
     ("payload", "expected"),
     [
-        ("017561", {"reported_battery_percent": 97}),
-        ("0301ff", {"valve_1_control_failed": True}),
-        ("0501ff", {"valve_2_control_failed": True}),
-        ("050101", {"valve_2_open": True}),
-        ("04c864000000", {"valve_1_pulse_count": 100}),
-        ("06c864000000", {"valve_2_pulse_count": 100}),
-        ("070101", {"gpio_1": True}),
-        ("080100", {"gpio_2": False}),
-        ("097b6400", {"pressure_kpa": 100}),
-        ("b97b00", {"pressure_kpa": None}),
+        pytest.param("017561", {"reported_battery_percent": 97}, id="battery"),
+        pytest.param("0301ff", {"valve_1_control_failed": True}, id="valve-1-failed"),
+        pytest.param("0501ff", {"valve_2_control_failed": True}, id="valve-2-failed"),
+        pytest.param("050101", {"valve_2_open": True}, id="valve-2-open"),
+        pytest.param("04c864000000", {"valve_1_pulse_count": 100}, id="valve-1-pulse"),
+        pytest.param("06c864000000", {"valve_2_pulse_count": 100}, id="valve-2-pulse"),
+        pytest.param("070101", {"gpio_1": True}, id="gpio-1"),
+        pytest.param("080100", {"gpio_2": False}, id="gpio-2"),
+        pytest.param("097b6400", {"pressure_kpa": 100}, id="pressure"),
+        pytest.param("b97b00", {"pressure_kpa": None}, id="pressure-unavailable"),
     ],
 )
 def test_uc51x_records(
@@ -204,9 +239,9 @@ def test_uc51x_records(
 @pytest.mark.parametrize(
     ("model", "payload", "match"),
     [
-        (TS201, "017565", "Invalid battery percentage"),
-        (TS201, "0175", "Truncated channel data"),
-        (UC51x, "017565", "Invalid battery percentage"),
+        pytest.param(TS201, "017565", "Invalid battery percentage", id="ts201-battery"),
+        pytest.param(TS201, "0175", "Truncated channel data", id="ts201-truncated"),
+        pytest.param(UC51x, "017565", "Invalid battery percentage", id="uc51x-battery"),
     ],
 )
 def test_milesight_rejects_invalid_frames(
@@ -217,16 +252,14 @@ def test_milesight_rejects_invalid_frames(
 
 
 @pytest.mark.parametrize(
-    ("payload", "illuminance", "notified"),
+    ("payload", "notified"),
     [
-        ("020310" + "0" * 12, None, False),
-        ("010310009435770000", None, True),
-        ("01031000c2eb0b0000", None, False),
+        pytest.param("020310" + "0" * 12, False, id="other-channel"),
+        pytest.param("010310009435770000", True, id="fault-sentinel"),
+        pytest.param("01031000c2eb0b0000", False, id="out-of-range"),
     ],
 )
-def test_s2102_non_current_records(
-    payload: str, illuminance: float | None, notified: bool
-) -> None:
+def test_s2102_non_current_records(payload: str, notified: bool) -> None:
     """Other channels, fault sentinels, and out-of-range values stay unread."""
     device = S2102(descriptor(S2102))
     listener = Mock()
@@ -239,7 +272,7 @@ def test_s2102_non_current_records(
             data=bytes.fromhex(payload),
         )
     )
-    assert device.illuminance is illuminance
+    assert device.illuminance is None
     if notified:
         listener.assert_called_once_with()
     else:
