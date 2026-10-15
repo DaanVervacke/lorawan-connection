@@ -15,6 +15,7 @@ from lorawan_connection import (
     EventType,
     UplinkEvent,
 )
+from lorawan_connection._subscribers import inventory_event
 from lorawan_connection.backend.chirpstack import (
     AuthenticationError,
     ChirpStackConnection,
@@ -540,7 +541,7 @@ async def test_multiple_subscriptions(connection: ChirpStackConnection) -> None:
         await connection.async_subscribe(brands=None, listener=second)
         unsubscribe()
         unsubscribe()
-        connection._emit(connection._inventory_event(EventType.ADDED, DESCRIPTOR))
+        connection._emit(inventory_event(EventType.ADDED, DESCRIPTOR))
         first.assert_not_called()
         second.assert_called_once()
         assert connection.available
@@ -626,7 +627,7 @@ async def test_bad_listener_does_not_block_other_consumers(
     await connection.async_subscribe(brands=None, listener=Mock(side_effect=ValueError))
     events = Mock()
     await connection.async_subscribe(brands=None, listener=events)
-    connection._emit(connection._inventory_event(EventType.ADDED, DESCRIPTOR))
+    connection._emit(inventory_event(EventType.ADDED, DESCRIPTOR))
     events.assert_called_once()
     await connection.close()
     good.assert_called_once()
@@ -642,7 +643,7 @@ async def test_identical_subscriptions_are_independent(
     second = await connection.async_subscribe(brands=None, listener=listener)
     second()
     second()
-    connection._emit(connection._inventory_event(EventType.ADDED, DESCRIPTOR))
+    connection._emit(inventory_event(EventType.ADDED, DESCRIPTOR))
     listener.assert_called_once()
     first()
     await connection.close()

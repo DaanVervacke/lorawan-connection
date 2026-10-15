@@ -2,7 +2,6 @@
 
 import asyncio
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlsplit
@@ -12,7 +11,6 @@ import grpc
 
 from lorawan_connection import (
     AckEvent,
-    AddedEvent,
     ConnectionUnavailable,
     DeviceDescriptor,
     DeviceEvent,
@@ -21,25 +19,18 @@ from lorawan_connection import (
     EventType,
     JoinEvent,
     LocationEvent,
-    RemovedEvent,
     Unsubscribe,
-    UpdatedEvent,
     UplinkEvent,
     notify,
     subscribe,
 )
+from lorawan_connection._subscribers import Subscribers, inventory_event
 
 from ._tts_api import Service, message
 
 
 class AuthenticationError(Exception):
     """The key lacks required device or application-traffic read access."""
-
-
-@dataclass(eq=False)
-class _Subscriber:
-    brands: frozenset[tuple[str, int | str]] | None
-    listener: Callable[[DeviceEvent], None]
 
 
 def _connection_error(error: Exception) -> Exception:
@@ -109,7 +100,7 @@ class TTSConnection:
         self.poll_interval = poll_interval
         self.devices: dict[str, DeviceDescriptor] = {}
         self._ids: dict[str, Any] = {}
-        self._subscribers: list[_Subscriber] = []
+        self._subscribers = Subscribers()
         self._disconnect: list[Callable[[None], None]] = []
         self._tasks: list[asyncio.Task[None]] = []
         self._lock = asyncio.Lock()
@@ -186,24 +177,12 @@ class TTSConnection:
         descriptor = event.descriptor or self.devices.get(event.dev_eui)
         if descriptor is None:
             return
-        for subscriber in tuple(self._subscribers):
-            if subscriber not in self._subscribers:
-                continue
-            brands = subscriber.brands
-            if brands is None or (descriptor.stack, descriptor.brand_id) in brands:
-                notify([subscriber.listener], event)
-            elif previous and (previous.stack, previous.brand_id) in brands:
-                notify([subscriber.listener], self._event(EventType.REMOVED, previous))
-
-    def _event(self, kind: EventType, descriptor: DeviceDescriptor) -> DeviceEvent:
-        event_classes: dict[
-            EventType, type[AddedEvent | UpdatedEvent | RemovedEvent]
-        ] = {
-            EventType.ADDED: AddedEvent,
-            EventType.UPDATED: UpdatedEvent,
-            EventType.REMOVED: RemovedEvent,
-        }
-        return event_classes[kind](descriptor=descriptor, received_at=datetime.now(UTC))
+        self._subscribers.emit(
+            event,
+            descriptor,
+            lambda retired: inventory_event(EventType.REMOVED, retired),
+            previous,
+        )
 
     async def refresh(self) -> None:
         generation = self._refresh_generation
@@ -254,13 +233,13 @@ class TTSConnection:
             self._ids = identifiers
             for eui, descriptor in previous.items():
                 if eui not in devices:
-                    self._emit(self._event(EventType.REMOVED, descriptor))
+                    self._emit(inventory_event(EventType.REMOVED, descriptor))
             for eui, descriptor in devices.items():
                 if eui not in previous:
-                    self._emit(self._event(EventType.ADDED, descriptor))
+                    self._emit(inventory_event(EventType.ADDED, descriptor))
                 elif descriptor != previous[eui]:
                     self._emit(
-                        self._event(EventType.UPDATED, descriptor), previous[eui]
+                        inventory_event(EventType.UPDATED, descriptor), previous[eui]
                     )
             self._completed_refresh = self._refresh_generation
 
@@ -395,19 +374,9 @@ class TTSConnection:
         listener: Callable[[DeviceEvent], None],
     ) -> Unsubscribe:
         self._check_available()
-        subscriber = _Subscriber(brands, listener)
-        self._subscribers.append(subscriber)
-        for descriptor in tuple(self.devices.values()):
-            if subscriber not in self._subscribers:
-                break
-            if brands is None or (descriptor.stack, descriptor.brand_id) in brands:
-                notify([listener], self._event(EventType.ADDED, descriptor))
-
-        def unsubscribe() -> None:
-            if subscriber in self._subscribers:
-                self._subscribers.remove(subscriber)
-
-        return unsubscribe
+        return self._subscribers.add(
+            brands, listener, replay=tuple(self.devices.values())
+        )
 
     def on_disconnect(self, listener: Callable[[], None]) -> Unsubscribe:
         if self._closed:

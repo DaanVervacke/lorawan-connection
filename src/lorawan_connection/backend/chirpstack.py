@@ -3,7 +3,6 @@
 import asyncio
 import logging
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
 from urllib.parse import urlsplit
@@ -15,7 +14,6 @@ from google.protobuf.message import Message
 
 from lorawan_connection import (
     AckEvent,
-    AddedEvent,
     ConnectionUnavailable,
     DeviceDescriptor,
     DeviceEvent,
@@ -25,15 +23,14 @@ from lorawan_connection import (
     JoinEvent,
     LocationEvent,
     LogEvent,
-    RemovedEvent,
     StatusEvent,
     TxAckEvent,
     Unsubscribe,
-    UpdatedEvent,
     UplinkEvent,
     notify,
     subscribe,
 )
+from lorawan_connection._subscribers import Subscribers, inventory_event
 
 _LOGGER = logging.getLogger(__name__)
 _MESSAGES = {
@@ -79,12 +76,6 @@ class Page[T](Protocol):
 
 class AuthenticationError(Exception):
     """Credentials have been rejected."""
-
-
-@dataclass(eq=False)
-class _Subscriber:
-    brands: frozenset[tuple[str, int | str]] | None
-    listener: Callable[[DeviceEvent], None]
 
 
 def connection_error(error: Exception) -> Exception:
@@ -152,7 +143,7 @@ class ChirpStackConnection:
         self.devices: dict[str, DeviceDescriptor] = {}
         self.available = False
         self.error: Exception | None = None
-        self._subscribers: list[_Subscriber] = []
+        self._subscribers = Subscribers()
         self._disconnect_listeners: list[Callable[[None], None]] = []
         self._connecting = False
         self._streams: dict[str, asyncio.Task[None]] = {}
@@ -344,31 +335,12 @@ class ChirpStackConnection:
         descriptor = event.descriptor or self.devices.get(event.dev_eui)
         if descriptor is None:
             return
-        for subscriber in tuple(self._subscribers):
-            if subscriber not in self._subscribers:
-                continue
-            vendors = subscriber.brands
-            if vendors is None or (descriptor.stack, descriptor.brand_id) in vendors:
-                notify([subscriber.listener], event)
-            elif (
-                previous is not None and (previous.stack, previous.brand_id) in vendors
-            ):
-                notify(
-                    [subscriber.listener],
-                    self._inventory_event(EventType.REMOVED, previous),
-                )
-
-    def _inventory_event(
-        self, kind: EventType, descriptor: DeviceDescriptor
-    ) -> DeviceEvent:
-        event_classes: dict[
-            EventType, type[AddedEvent | UpdatedEvent | RemovedEvent]
-        ] = {
-            EventType.ADDED: AddedEvent,
-            EventType.UPDATED: UpdatedEvent,
-            EventType.REMOVED: RemovedEvent,
-        }
-        return event_classes[kind](received_at=datetime.now(UTC), descriptor=descriptor)
+        self._subscribers.emit(
+            event,
+            descriptor,
+            lambda retired: inventory_event(EventType.REMOVED, retired),
+            previous,
+        )
 
     async def refresh(self) -> None:
         """Commit complete snapshots without blocking live activity during reads."""
@@ -384,14 +356,12 @@ class ChirpStackConnection:
                         task := self._streams.pop(eui, None)
                     ) is not None and task is not asyncio.current_task():
                         task.cancel()
-                    self._emit(self._inventory_event(EventType.REMOVED, descriptor))
+                    self._emit(inventory_event(EventType.REMOVED, descriptor))
             for eui, descriptor in snapshot.items():
                 if eui not in old:
-                    self._emit(self._inventory_event(EventType.ADDED, descriptor))
+                    self._emit(inventory_event(EventType.ADDED, descriptor))
                 elif old[eui] != descriptor:
-                    self._emit(
-                        self._inventory_event(EventType.UPDATED, descriptor), old[eui]
-                    )
+                    self._emit(inventory_event(EventType.UPDATED, descriptor), old[eui])
                 if eui not in self._streams:
                     self._streams[eui] = asyncio.create_task(self._stream(eui))
 
@@ -423,19 +393,9 @@ class ChirpStackConnection:
         """Deliver matching inventory, then live events. None selects all vendors."""
         if not self.available or self._closed:
             raise ConnectionUnavailable("Connection is not available")
-        subscriber = _Subscriber(brands, listener)
-        self._subscribers.append(subscriber)
-
-        def unsubscribe() -> None:
-            if subscriber in self._subscribers:
-                self._subscribers.remove(subscriber)
-
-        for descriptor in tuple(self.devices.values()):
-            if subscriber not in self._subscribers:
-                break
-            if brands is None or (descriptor.stack, descriptor.brand_id) in brands:
-                notify([listener], self._inventory_event(EventType.ADDED, descriptor))
-        return unsubscribe
+        return self._subscribers.add(
+            brands, listener, replay=tuple(self.devices.values())
+        )
 
     def on_disconnect(self, listener: Callable[[], None]) -> Unsubscribe:
         """Notify after connection loss or closure. Callers own recovery."""
