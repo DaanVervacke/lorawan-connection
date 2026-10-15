@@ -83,10 +83,10 @@ class MockConnection:
         self._subscribers.emit(
             event,
             descriptor,
-            lambda retired: RemovedEvent(
+            previous,
+            build_removed=lambda retired: RemovedEvent(
                 received_at=event.received_at, descriptor=retired
             ),
-            previous,
         )
 
     def disconnect(self) -> None:

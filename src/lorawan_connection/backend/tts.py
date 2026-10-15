@@ -24,7 +24,7 @@ from lorawan_connection import (
     notify,
     subscribe,
 )
-from lorawan_connection._subscribers import Subscribers, inventory_event
+from lorawan_connection._subscribers import Subscribers, deliver, inventory_event
 
 from ._tts_api import Service, message
 
@@ -174,15 +174,7 @@ class TTSConnection:
     def _emit(
         self, event: DeviceEvent, previous: DeviceDescriptor | None = None
     ) -> None:
-        descriptor = event.descriptor or self.devices.get(event.dev_eui)
-        if descriptor is None:
-            return
-        self._subscribers.emit(
-            event,
-            descriptor,
-            lambda retired: inventory_event(EventType.REMOVED, retired),
-            previous,
-        )
+        deliver(self._subscribers, self.devices, event, previous)
 
     async def refresh(self) -> None:
         """Replace the device list from one complete registry scan and emit changes."""

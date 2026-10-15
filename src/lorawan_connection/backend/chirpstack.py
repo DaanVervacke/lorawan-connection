@@ -30,7 +30,7 @@ from lorawan_connection import (
     notify,
     subscribe,
 )
-from lorawan_connection._subscribers import Subscribers, inventory_event
+from lorawan_connection._subscribers import Subscribers, deliver, inventory_event
 
 _LOGGER = logging.getLogger(__name__)
 _MESSAGES = {
@@ -332,15 +332,7 @@ class ChirpStackConnection:
     def _emit(
         self, event: DeviceEvent, previous: DeviceDescriptor | None = None
     ) -> None:
-        descriptor = event.descriptor or self.devices.get(event.dev_eui)
-        if descriptor is None:
-            return
-        self._subscribers.emit(
-            event,
-            descriptor,
-            lambda retired: inventory_event(EventType.REMOVED, retired),
-            previous,
-        )
+        deliver(self._subscribers, self.devices, event, previous)
 
     async def refresh(self) -> None:
         """Commit complete snapshots without blocking live activity during reads."""

@@ -1,6 +1,6 @@
-"""Brand-filtered subscriber registries shared by the connections."""
+"""Subscriber registries and inventory events shared by the connections."""
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -14,15 +14,20 @@ from .events import (
     UpdatedEvent,
 )
 
+_INVENTORY_EVENTS: dict[EventType, type[AddedEvent | UpdatedEvent | RemovedEvent]] = {
+    EventType.ADDED: AddedEvent,
+    EventType.UPDATED: UpdatedEvent,
+    EventType.REMOVED: RemovedEvent,
+}
+
 
 def inventory_event(kind: EventType, descriptor: DeviceDescriptor) -> DeviceEvent:
     """Build an inventory event stamped with the current time."""
-    event_classes: dict[EventType, type[AddedEvent | UpdatedEvent | RemovedEvent]] = {
-        EventType.ADDED: AddedEvent,
-        EventType.UPDATED: UpdatedEvent,
-        EventType.REMOVED: RemovedEvent,
-    }
-    return event_classes[kind](received_at=datetime.now(UTC), descriptor=descriptor)
+    return _INVENTORY_EVENTS[kind](received_at=datetime.now(UTC), descriptor=descriptor)
+
+
+def _removed_now(descriptor: DeviceDescriptor) -> DeviceEvent:
+    return inventory_event(EventType.REMOVED, descriptor)
 
 
 @dataclass(eq=False)
@@ -63,8 +68,9 @@ class Subscribers:
         self,
         event: DeviceEvent,
         descriptor: DeviceDescriptor,
-        removed: Callable[[DeviceDescriptor], DeviceEvent],
         previous: DeviceDescriptor | None = None,
+        *,
+        build_removed: Callable[[DeviceDescriptor], DeviceEvent] = _removed_now,
     ) -> None:
         """Deliver an event to matching listeners, with a removal fallback."""
         for subscriber in tuple(self._items):
@@ -77,8 +83,21 @@ class Subscribers:
             elif previous is not None and (
                 (previous.stack, previous.brand_id) in subscriber.brands
             ):
-                notify([subscriber.listener], removed(previous))
+                notify([subscriber.listener], build_removed(previous))
 
     def clear(self) -> None:
         """Drop every listener."""
         self._items.clear()
+
+
+def deliver(
+    subscribers: Subscribers,
+    devices: Mapping[str, DeviceDescriptor],
+    event: DeviceEvent,
+    previous: DeviceDescriptor | None = None,
+) -> None:
+    """Resolve the event's descriptor and deliver it to matching listeners."""
+    descriptor = event.descriptor or devices.get(event.dev_eui)
+    if descriptor is None:
+        return
+    subscribers.emit(event, descriptor, previous)
