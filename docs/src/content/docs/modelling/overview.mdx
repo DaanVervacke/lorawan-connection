@@ -18,8 +18,8 @@ Save this as `dragino_lorawan.py`. It includes the `DraginoDevices` collection u
 
 <Code code={source} lang="python" title="dragino_lorawan.py" />
 
-Values start as `None` until a report arrives. The model uses channel dictionaries;
-other models can use individual attributes, nested objects, or dataclasses.
+Values start as `None` until a report arrives. The model uses channel dictionaries.
+Other models can use individual attributes, nested objects, or dataclasses.
 
 ## Decode events and update state
 
@@ -34,7 +34,7 @@ unless the device protocol says an omitted value is no longer available.
 One message can update several values. Update them all before calling `notify()`
 so listeners see the complete update. Notify for valid reports even when values
 are unchanged. Models choose their own timestamp ordering
-and stale-data rules; the collection does not impose them.
+and stale-data rules. The collection does not impose them.
 
 ## Read LoRaWAN device status
 
@@ -70,7 +70,7 @@ def device_added(device: LT22222) -> None:
 
 Listeners run synchronously with no arguments. Registration does not replay state,
 so call `show_values()` once for the initial values. `add_update_listener()` returns
-an unsubscribe function; closing the model also removes its listeners.
+an unsubscribe function. Closing the model also removes its listeners.
 
 ## Send commands
 
@@ -89,7 +89,7 @@ async def turn_on(device: LT22222) -> None:
 
 The call completes after a device acknowledgement or raises `TimeoutError` after
 30 seconds. Keep the event subscription running so acknowledgements can arrive.
-An ACK confirms delivery; reported state changes with the next uplink.
+An ACK confirms delivery. Reported state changes with the next uplink.
 
 ### Implement a command method
 
@@ -103,7 +103,7 @@ By default, `wait_for_ack=True` requests a confirmed downlink. A model can pass
 accepts it. Confirmation follows this setting automatically.
 
 If a command should expire while queued, pass a timezone-aware `expires_at`
-datetime. Queue expiry limits how long the server retains a command; the caller's
+datetime. Queue expiry limits how long the server retains a command. The caller's
 timeout limits how long the application waits.
 
 The Dragino example exposes optional expiry on both output methods:
@@ -113,7 +113,7 @@ await device.async_set_relay(1, True)  # No queue expiry.
 await device.async_set_digital_output(1, True, expires_at=deadline)
 ```
 
-`deadline` must be a timezone-aware datetime. ChirpStack supports queue expiry;
+`deadline` must be a timezone-aware datetime. ChirpStack supports queue expiry.
 TTS rejects an explicit deadline. Without expiry, a queued command can execute
 later, including after the caller stops waiting. No automatic queue clearing occurs.
 
@@ -131,7 +131,7 @@ to end pending acknowledgement waits.
 ## Manage devices with a collection
 
 A collection manages device instances for one logical network. `DraginoDevices`
-declares its supported models in `DEVICES`; the collection selects a class by
+declares its supported models in `DEVICES`. The collection selects a class by
 matching its `identifiers` against each incoming descriptor.
 
 Each stack has its own catalog. Declare the native brand and model IDs together:
@@ -148,7 +148,7 @@ class S2101(Device):
 
 The collection matches `(stack, brand_id, model_id)`. The same device model can
 therefore decode messages from either stack. A duplicate identity within one
-stack raises `ValueError`; matching IDs in different stacks are independent.
+stack raises `ValueError`. Matching IDs in different stacks are independent.
 
 This function creates a collection and prints each model update:
 
@@ -187,7 +187,7 @@ collection = DeviceCollection(connection, [LT22222])
 ```
 
 Backends and test doubles implement the same `Connection` protocol. Several
-collections can share a connection; closing one leaves the others and the transport open.
+collections can share a connection. Closing one leaves the others and the transport open.
 
 ## Include unrecognized devices
 

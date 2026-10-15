@@ -39,8 +39,8 @@ Overrides do not need to call `super().handle_event()`.
 | Property | Type | Meaning |
 | --- | --- | --- |
 | `latest_status` | `StatusEvent \| None` | Last received status event, including its timestamp. |
-| `battery_level` | `float \| None` | Battery percentage; `None` when unavailable or externally powered. |
-| `external_power_source` | `bool \| None` | External-power flag; `None` before the first status report. |
+| `battery_level` | `float \| None` | Battery percentage. `None` when unavailable or externally powered. |
+| `external_power_source` | `bool \| None` | External-power flag. `None` before the first status report. |
 | `downlink_margin` | `int \| None` | Device-reported SNR in dB for the received status request. |
 
 These read-only properties describe LoRaWAN MAC status. Application payload
@@ -49,14 +49,14 @@ An unavailable reading clears the exposed battery level to `None`.
 
 Each received status replaces the previous report and schedules an update
 notification. Other events leave status unchanged. Reports are stored in delivery
-order; use `latest_status.received_at` to inspect their age. State lasts for the
+order. Use `latest_status.received_at` to inspect their age. State lasts for the
 model's lifetime and is not persisted across replacement or collection recreation.
 
 ### add_update_listener(listener) -> Unsubscribe
 
 Register a synchronous `Callable[[], None]`. No initial callback is sent. Read
-model attributes directly for initial values. Each registration is independent;
-its unsubscribe function is idempotent. Registration after close raises `RuntimeError`.
+model attributes directly for initial values. Each registration is independent.
+Its unsubscribe function is idempotent. Registration after close raises `RuntimeError`.
 
 ### add_remove_listener(listener) -> Unsubscribe
 
@@ -105,7 +105,7 @@ additional resources can override this method and call `super().close()`.
 ### Construction and attributes
 
 `DeviceCollection(connection, models=None)` creates a collection for one logical
-network. `models` is a sequence of model classes; when omitted, the collection uses
+network. `models` is a sequence of model classes. When omitted, the collection uses
 its `DEVICES` declaration.
 
 With neither explicit models nor a `DEVICES` declaration, the collection subscribes
@@ -117,7 +117,7 @@ sequence selects no devices, including when it overrides a subclass's `DEVICES`.
 - `connection` implements the `Connection` protocol. The collection uses it to
   subscribe to events and send commands.
 - `devices: dict[str, DeviceT]` contains current models, keyed by canonical DevEUI.
-  Treat it as a read-only view; only the collection changes its contents.
+  Treat it as a read-only view. Only the collection changes its contents.
 
 The collection copies the registry at construction. Duplicate
 `(stack, brand_id, model_id)` pairs raise `ValueError`. A subclass inherits `DEVICES`
@@ -131,7 +131,7 @@ The backend-neutral `Connection` protocol exposes:
 - `stack_type: str` identifies the catalog namespace. Each descriptor uses the same value in `stack`.
 
 - `async_subscribe(*, brands, listener) -> Unsubscribe` takes a `frozenset[tuple[str, int | str]]` or `None` and reports matching existing
-  devices before returning, then live events. `None` selects all devices; an empty set selects none. Arguments are keyword-only.
+  devices before returning, then live events. `None` selects all devices. An empty set selects none. Arguments are keyword-only.
 - `on_disconnect(listener) -> Unsubscribe` registers a notification callback with no arguments.
 - `async_send_downlink(downlink: Downlink) -> str` queues a command and returns its
   queue ID for internal ACK correlation.
@@ -190,13 +190,13 @@ Use `device.add_remove_listener()` to observe only removal or replacement of one
 Both methods raise `RuntimeError` after the collection is closed. Their returned
 unsubscribe functions are idempotent. Callback exceptions are logged and isolated.
 Callbacks must be synchronous and should only observe models or manage listeners.
-They can close the collection; do not recursively inject device changes.
+They can close the collection. Do not recursively inject device changes.
 
 ### close() -> None
 
 Unsubscribe, retire all models, and clear listeners, leaving the shared connection
-open. Repeated calls and subsequent events do nothing. Cleanup failures are logged;
-other models still close and removal callbacks still run.
+open. Repeated calls and subsequent events do nothing. Cleanup failures are logged.
+Other models still close and removal callbacks still run.
 
 ## Callback helpers
 

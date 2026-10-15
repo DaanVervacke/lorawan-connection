@@ -72,7 +72,7 @@ Import your installed device library. This repository uses `examples/` on pytest
 
 The example libraries support SenseCAP S2101/S2102, Dragino LT-22222-L/LHT65,
 and Milesight TS201/UC51x. Their model identities come from the public catalogs.
-SenseCAP accepts FPorts 1 and 2. Milesight uses 85; LHT65 uses 2.
+SenseCAP accepts FPorts 1 and 2. Milesight uses 85. LHT65 uses 2.
 UC51x exposes reported telemetry only.
 
 `tests/fixtures/device_uplinks/` contains raw payloads from physical S2101, S2102,
@@ -182,9 +182,9 @@ Pass a descriptor for additions and metadata changes. For removals, supply
 the last descriptor.
 
 `connection.disconnect()` stops event delivery and calls registered disconnect
-listeners once. Later subscriptions raise `ConnectionUnavailable`; command sends
+listeners once. Later subscriptions raise `ConnectionUnavailable`. Command sends
 raise `DownlinkError`. Close the collections when notified and create a new mock
 to test reconnection.
 
-Each mock is one network. Add a device before emitting its activity;
-unknown devices and events from another network raise `ValueError`.
+Each mock is one network. Add a device before emitting its activity.
+Unknown devices and events from another network raise `ValueError`.

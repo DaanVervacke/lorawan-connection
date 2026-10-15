@@ -39,7 +39,7 @@ For SenseCAP:
 }
 ```
 
-Use native brand IDs: ChirpStack uses integers; TTS uses strings.
+Use native brand IDs: ChirpStack uses integers. TTS uses strings.
 
 Expose the library's supported models in a `lorawan.py` platform. The provider uses
 this declaration to explain whether a device's model is supported:
@@ -53,7 +53,7 @@ DEVICE_MODELS = SenseCapDeviceCollection.DEVICES
 ## Config-entry setup
 
 Store the manager in `entry.runtime_data`. Its collection factory receives a
-connection; its coordinator factory receives `hass` and a device model.
+connection. Its coordinator factory receives `hass` and a device model.
 The coordinator must initialize `data` and subscribe to updates before returning.
 
 In `__init__.py`, with `DOMAIN = "sensecap"` in `const.py`:
@@ -99,12 +99,12 @@ coordinators immediately and future additions as they arrive.
 
 A disconnected server makes its coordinators unavailable. The manager retains their
 models and registry records, then reconciles inventory on reconnect. The server
-integration handles recovery; the vendor entry stays loaded.
+integration handles recovery. The vendor entry stays loaded.
 
 ## Share updates through a coordinator
 
 All entities for a device share a `DataUpdateCoordinator`. Model notifications
-call `async_set_updated_data()`; no polling interval or first refresh is needed.
+call `async_set_updated_data()`. No polling interval or first refresh is needed.
 In `coordinator.py`:
 
 ```python
@@ -179,13 +179,13 @@ because incomplete inventory does not prove a device was removed.
 
 Register only `manager.close` for collection and coordinator cleanup. It leaves
 server transports open. The manager registers device identity before notifying
-platforms; vendor coordinators supply manufacturer and model metadata.
+platforms. Vendor coordinators supply manufacturer and model metadata.
 
 ## A shared entity base
 
 `LoRaWANEntity` extends `CoordinatorEntity` with access to the model as `self.device`.
 It marks closed models unavailable and prevents queued entity additions from
-recreating a removed device. Its `async_update()` is a no-op; readings arrive
+recreating a removed device. Its `async_update()` is a no-op. Readings arrive
 through subscriptions.
 
 ## Map device values to entities
@@ -291,7 +291,7 @@ class SenseCapSensor(LoRaWANEntity[S2101], SensorEntity):
 ## Writable devices
 
 Call the model's command methods from the entity. This excerpt uses the
-[Dragino model](/lorawan-connection/modelling/overview/); entity setup must assign
+[Dragino model](/lorawan-connection/modelling/overview/). Entity setup must assign
 `self.channel` to the relay number:
 
 ```python
@@ -327,7 +327,7 @@ class DraginoRelay(LoRaWANEntity[LT22222], SwitchEntity):
             ) from error
 ```
 
-Read switch state from `device.relays`. An ACK confirms delivery; the next device
+Read switch state from `device.relays`. An ACK confirms delivery. The next device
 report supplies the resulting state.
 
 Define `command_timeout` and `command_failed` under `exceptions` in `strings.json`.

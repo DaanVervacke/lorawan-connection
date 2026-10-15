@@ -117,7 +117,7 @@ registry records without a usable DevEUI.
 
 Read every page and selected application before replacing inventory, so failed reads
 cannot appear as deletions. Compare complete snapshots to emit `ADDED`, `UPDATED`, and `REMOVED`.
-Retain devices with unknown catalog identity in inventory; leave `brand_id=None`
+Retain devices with unknown catalog identity in inventory. Leave `brand_id=None`
 and `model_id=""` when those fields are absent.
 
 ## Order inventory before activity
@@ -182,7 +182,7 @@ Do not embed an application's retry loop or configuration storage in the adapter
 
 ## Add CLI selection
 
-The shared CLI currently selects `chirpstack` or `tts`; it does not auto-discover
+The shared CLI currently selects `chirpstack` or `tts`. It does not auto-discover
 third-party backends. For a new bundled adapter, extend `add_connection_args()` and
 `connect_from_args()` in `cli_helper.py`:
 
@@ -190,7 +190,7 @@ third-party backends. For a new bundled adapter, extend `add_connection_args()` 
 - Read its credentials from an environment variable or `--api-key-file`.
 - Import the adapter inside the selected branch of `connect_from_args()`.
 - Report a missing extra with an installation hint.
-- Return the scoped adapter; the CLI owns connecting, subscriptions, and closure.
+- Return the scoped adapter. The CLI owns connecting, subscriptions, and closure.
 
 Imports needed only for type annotations belong under `TYPE_CHECKING`.
 Check that CLI help and shared imports still work with no optional extras installed.

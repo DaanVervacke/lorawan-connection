@@ -33,7 +33,7 @@ A TTS integration needs these manifest fields:
 
 Pin the same `lorawan-connection` version as the shared `lorawan` integration.
 For a separately published adapter, use its package name and version in `requirements`.
-Import the adapter in the server integration; keep its SDK calls in the backend.
+Import the adapter in the server integration. Keep its SDK calls in the backend.
 
 ## Configure and validate the server
 
@@ -85,7 +85,7 @@ Subscriptions use `async_subscribe(brands=..., listener=...)`. The initial
 inventory must include all devices matching the requested brands.
 
 Set `network_id=entry.entry_id` to distinguish identical DevEUIs on different servers.
-The returned unsubscribe callback withdraws the connection; the server integration
+The returned unsubscribe callback withdraws the connection. The server integration
 owns transport cleanup.
 
 In `__init__.py`, use the config-flow fields and `DOMAIN` from `const.py`:
@@ -174,15 +174,15 @@ Then unregister the connection and close the transport. The setup exception hand
 also close the backend if registration fails or is cancelled.
 
 On disconnect, `lorawan` withdraws the connection and the server integration
-schedules a reload. `ConfigEntryAuthFailed` starts reauthentication;
+schedules a reload. `ConfigEntryAuthFailed` starts reauthentication.
 `ConfigEntryNotReady` lets HA retry setup. Keep the entry ID on reconnect so
 `DeviceManager` can reuse models and coordinators with the replacement transport.
 
 ## Supply device identities for discovery
 
 Include the backend's native `stack`, `brand_id`, and `model_id` in each device
-descriptor. LoRaWAN uses the stack and brand to discover the vendor integration;
-the vendor library uses the model ID to select a device implementation.
+descriptor. LoRaWAN uses the stack and brand to discover the vendor integration.
+The vendor library uses the model ID to select a device implementation.
 
 Add new stack identities to the vendor library and the device integration's
 [discovery manifest](/lorawan-connection/home-assistant/device-implementations/#dependencies-and-discovery).
@@ -193,7 +193,7 @@ Alongside config-flow and setup tests, cover:
 
 - Setup failure and cancellation closing all transports.
 - Unload and HA shutdown without scheduling recovery.
-- Two servers with the same DevEUI; disconnecting or deleting one leaves the other available.
+- Two servers with the same DevEUI. Disconnecting or deleting one leaves the other available.
 - Reconnection preserving models and coordinators, reconciling inventory, and routing commands to the replacement connection.
 - Read-only credentials and device removal.
 

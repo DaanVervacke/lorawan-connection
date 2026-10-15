@@ -39,7 +39,7 @@ Use `CHIRPSTACK_API_KEY` if you keep the key in the environment.
 The helper discovers applications across all tenants accessible to the API key
 at startup. Pass `--tenant UUID` to restrict it to one tenant, or repeat
 `--application UUID` to select specific applications. Keys that cannot list tenants
-require `--tenant`; this includes tenant-scoped keys with the tested ChirpStack version.
+require `--tenant`. This includes tenant-scoped keys with the tested ChirpStack version.
 
 Add `--json` for one JSON object per line:
 
@@ -63,7 +63,7 @@ Add `--json` for one JSON object per line:
 Output types are `added`, `state`, and `removed`. Only supported models appear.
 If a device has a supported brand ID but no matching model, the helper warns on
 stderr once per device per run. The warning includes its name, DevEUI, brand ID,
-and model ID. This also applies to `--list`; `--json` output stays on stdout.
+and model ID. This also applies to `--list`. `--json` output stays on stdout.
 
 The helper prints public model attributes and properties, excluding methods,
 private attributes, and the base class's identity and lifecycle fields. Properties

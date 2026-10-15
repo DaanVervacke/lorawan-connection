@@ -24,14 +24,14 @@ A frozen, slotted dataclass. Positional or keyword arguments follow this order:
 | `manufacturer` | `str` | `""` | Manufacturer display text. |
 
 Construction removes colons from `dev_eui` and lowercases it. The result must have
-exactly 16 hexadecimal characters; otherwise construction raises `ValueError`.
+exactly 16 hexadecimal characters. Otherwise construction raises `ValueError`.
 Other fields are supplied by the provider and are not validated by this dataclass.
 
 ## DeviceEvent
 
 `DeviceEvent` is a union of `AddedEvent`, `UpdatedEvent`, `RemovedEvent`,
 `UplinkEvent`, `JoinEvent`, `StatusEvent`, `AckEvent`, `TxAckEvent`, `LogEvent`,
-and `LocationEvent`. Construct one of these classes; the union itself is not a constructor.
+and `LocationEvent`. Construct one of these classes. The union itself is not a constructor.
 
 The [events page](/lorawan-connection/connection/events/) lists every field,
 default, and event type. `EventType` remains a `StrEnum` with the same string values.
@@ -57,7 +57,7 @@ explicit network and device identifiers. Explicit identifiers must match a suppl
 descriptor. Construction normalizes DevEUIs and rejects invalid ones.
 
 Timestamps and radio ranges are not validated by the dataclasses. Backends provide
-timezone-aware timestamps; device libraries validate wire formats and measurements.
+timezone-aware timestamps. Device libraries validate wire formats and measurements.
 
 ## Changes from 0.10
 
@@ -68,7 +68,7 @@ with `UplinkEvent(data=..., f_port=..., ...)`. Other activity events follow the 
 pattern. Location coordinates move directly onto `LocationEvent`.
 
 Replace inventory envelopes with `AddedEvent`, `UpdatedEvent`, or `RemovedEvent`.
-Pass the descriptor and timestamp; omit identifiers and the `type` argument.
+Pass the descriptor and timestamp. Omit identifiers and the `type` argument.
 Construct a new event to change its type. Use `dataclasses.replace()` only to
 change fields within the same event class.
 
