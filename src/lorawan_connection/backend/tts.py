@@ -185,6 +185,7 @@ class TTSConnection:
         )
 
     async def refresh(self) -> None:
+        """Replace the device list from one complete registry scan and emit changes."""
         generation = self._refresh_generation
         async with self._lock:
             if self._completed_refresh > generation:
@@ -373,12 +374,14 @@ class TTSConnection:
         brands: frozenset[tuple[str, int | str]] | None,
         listener: Callable[[DeviceEvent], None],
     ) -> Unsubscribe:
+        """Deliver matching inventory, then live events. None selects all vendors."""
         self._check_available()
         return self._subscribers.add(
             brands, listener, replay=tuple(self.devices.values())
         )
 
     def on_disconnect(self, listener: Callable[[], None]) -> Unsubscribe:
+        """Notify after connection loss or closure. Callers own recovery."""
         if self._closed:
             raise ConnectionUnavailable("TTS connection is closed")
         return subscribe(self._disconnect, lambda _: listener())
