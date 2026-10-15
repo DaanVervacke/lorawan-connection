@@ -160,9 +160,15 @@ def test_clear_drops_every_listener() -> None:
 def test_deliver_resolves_descriptors_from_inventory() -> None:
     registry = Subscribers()
     events = []
-    registry.add(None, events.append)
-    deliver(registry, {FIRST.dev_eui: FIRST}, uplink(FIRST))
-    assert [event.descriptor for event in events] == [FIRST]
+    registry.add(BRANDS, events.append)
+    event = UplinkEvent(
+        network_id="network",
+        dev_eui=FIRST.dev_eui,
+        received_at=datetime.now(UTC),
+        data=b"payload",
+    )
+    deliver(registry, {FIRST.dev_eui: FIRST}, event)
+    assert events == [event]
 
 
 def test_deliver_ignores_unknown_devices() -> None:
