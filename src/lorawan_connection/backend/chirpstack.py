@@ -126,7 +126,7 @@ class ChirpStackConnection:
         poll_interval: float = 30,
         channel: grpc.aio.Channel | None = None,
     ) -> None:
-        """Use TLS for https; omit tenant_id to discover all accessible tenants."""
+        """Use TLS for https. Omit tenant_id to discover all accessible tenants."""
         url = urlsplit(endpoint)
         if (
             url.scheme not in ("http", "https")
@@ -194,7 +194,7 @@ class ChirpStackConnection:
         raise ConnectionUnavailable("Inventory changed during pagination")
 
     async def tenants(self) -> dict[str, str]:
-        """Discover tenants with a global key; scoped keys require a tenant ID."""
+        """Discover tenants with a global key. Scoped keys require a tenant ID."""
         return {
             item.id: item.name
             for item in await self._list(self._tenant_api.List, api.ListTenantsRequest)
@@ -420,7 +420,7 @@ class ChirpStackConnection:
         brands: frozenset[tuple[str, int | str]] | None,
         listener: Callable[[DeviceEvent], None],
     ) -> Unsubscribe:
-        """Deliver matching inventory, then live events; None selects all vendors."""
+        """Deliver matching inventory, then live events. None selects all vendors."""
         if not self.available or self._closed:
             raise ConnectionUnavailable("Connection is not available")
         subscriber = _Subscriber(brands, listener)
@@ -438,7 +438,7 @@ class ChirpStackConnection:
         return unsubscribe
 
     def on_disconnect(self, listener: Callable[[], None]) -> Unsubscribe:
-        """Notify after connection loss or closure; callers own recovery."""
+        """Notify after connection loss or closure. Callers own recovery."""
         if self._closed:
             raise ConnectionUnavailable("Connection is closed")
         return subscribe(self._disconnect_listeners, lambda _: listener())

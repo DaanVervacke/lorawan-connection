@@ -144,7 +144,7 @@ async def test_stream_decode_replay_and_disconnect(
     message: Message,
     stream_start_delay: int,
 ) -> None:
-    """Allow five seconds of history at each stream start; drop older records."""
+    """Allow five seconds of history at each stream start. Drop older records."""
     now = datetime.now(UTC).replace(microsecond=0) + timedelta(
         seconds=stream_start_delay
     )

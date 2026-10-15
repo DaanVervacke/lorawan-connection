@@ -73,7 +73,7 @@ class MockConnection:
         return subscribe(self._disconnect_listeners, lambda _: listener())
 
     async def async_send_downlink(self, downlink: Downlink) -> str:
-        """Record a command under its queue ID; acknowledgements are explicit."""
+        """Record a command under its queue ID. Acknowledgements are explicit."""
         if not self._available:
             raise DownlinkError("Mock connection is disconnected")
         if downlink.dev_eui not in self.devices:
