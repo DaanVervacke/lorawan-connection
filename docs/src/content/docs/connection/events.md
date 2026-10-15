@@ -128,8 +128,9 @@ Fixed type: `EventType.JOIN` (`"join"`).
 
 Device battery and radio link status. `margin` is the radio link margin in dB.
 `battery_level` is a percentage; check the power-source and battery-unavailable
-flags before reading it. Zero with `battery_level_unavailable=False` is a
-known zero.
+flags before reading it. Zero with `battery_level_unavailable=False` is a measured
+0 percent charge. The same value with `battery_level_unavailable=True` means the
+level is unknown.
 
 Fixed type: `EventType.STATUS` (`"status"`).
 
