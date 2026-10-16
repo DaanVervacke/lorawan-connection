@@ -22,13 +22,19 @@ Its site is <https://home-assistant-libs.github.io/lorawan-connection/>.
 
 1. Check CI and the documentation build for the release commit.
 2. Confirm that the PyPI publisher configuration matches the table above.
-3. Publish the GitHub release with tag `0.9.0`. Use a numeric tag without a `v` prefix.
+3. Publish the GitHub release with tag `<version>`. Use a numeric three-part tag
+   without a `v` prefix.
 4. The workflow replaces source version `0.0.0` with the tag and builds a wheel and sdist.
 5. The `pypi` job publishes those artifacts with GitHub's OIDC identity.
-6. Verify installation with `uv run --with lorawan-connection==0.9.0 --no-project python -c 'import lorawan_connection'`.
+6. Verify installation with `uv run --with lorawan-connection==<version> --no-project python -c 'import lorawan_connection'`.
 
 A draft release does not trigger publication. The workflow also supports manual dispatch with an
 existing tag to retry a release that failed before uploading artifacts to PyPI.
+
+The Home Assistant manifest example in
+`docs/src/content/docs/home-assistant/connection-providers.md` pins a
+`lorawan-connection` version. Update that pin when the shared `lorawan`
+integration adopts the release.
 
 ## Release notes
 
@@ -39,7 +45,7 @@ Do not include validation details, test counts, coverage, or check results.
 ## Build release artifacts locally
 
 ```sh
-uv run python script/build_release.py 0.9.0
+uv run python script/build_release.py <version>
 ```
 
 The script builds from an isolated copy and leaves `pyproject.toml` unchanged.

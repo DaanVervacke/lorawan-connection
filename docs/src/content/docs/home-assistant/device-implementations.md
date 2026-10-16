@@ -342,7 +342,7 @@ error without rejecting setup or marking the whole network offline.
 Register server connections with mocked transports, then emit events into the real
 vendor collections. Assert discovery confirmation, initial model replay, entity
 state, later additions, removal, and unload. Test two connections together: losing
-one must preserve the other’s availability, and reconnecting must reuse entities.
+one must preserve the other's availability, and reconnecting must reuse entities.
 
 Include removal while offline, disabled entities, and updates shared by several
 entities. Failed setup and ordinary shutdown must preserve registry records.

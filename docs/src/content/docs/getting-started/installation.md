@@ -22,7 +22,7 @@ pip install "lorawan-connection[chirpstack]"
 ```
 
 Use this extra for the [ChirpStack backend](/lorawan-connection/connection/chirpstack/) or a
-device library’s [CLI](/lorawan-connection/patterns/cli/).
+device library's [CLI](/lorawan-connection/patterns/cli/).
 
 Import the adapter explicitly:
 
