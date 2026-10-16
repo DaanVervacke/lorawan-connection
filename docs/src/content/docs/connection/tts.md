@@ -90,7 +90,7 @@ its tasks and closes both gRPC channels.
 
 The TTS application stream has no readiness acknowledgement before its first
 message. Setup checks application read rights and the lifecycle stream. Device
-readings can remain unknown until the first uplink; missed telemetry is not replayed.
+readings can remain unknown until the first uplink. Missed telemetry is not replayed.
 
 ## Commands and expiry
 
@@ -101,7 +101,7 @@ ACK, NACK, or downlink failure to the waiting model. A read-only write fails wit
 TTS has no queue-expiry field. The adapter rejects a downlink with `expires_at`
 before enqueueing it. The Dragino relay and digital-output methods default to no
 expiry and can run through TTS. A local timeout stops waiting but does not remove
-a queued command; it may be delivered later.
+a queued command. It may be delivered later.
 
 Queue clearing is a separate operation that needs a live server connection. It
 cannot undo a command already sent and can remove other pending commands. The

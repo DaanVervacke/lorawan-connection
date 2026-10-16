@@ -5,7 +5,7 @@ description: Organize device models into a library with a public collection, a C
 
 Package your [device models](/lorawan-connection/modelling/overview/) with a public
 collection that accepts a `Connection`. Keep decoding, units, and command encoding
-in the library; applications supply the connection and display the data.
+in the library. Applications supply the connection and display the data.
 
 ## Organize the package
 
@@ -90,7 +90,7 @@ async def monitor(connection: Connection) -> None:
 ```
 
 Values can be `None` until the first report. The model's removal listener runs on
-device removal or replacement; collection shutdown clears it without calling it.
+device removal or replacement. Collection shutdown clears it without calling it.
 
 ## Add a CLI and tests
 
