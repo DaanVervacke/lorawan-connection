@@ -11,20 +11,22 @@ import grpc
 
 from lorawan_connection import (
     AckEvent,
+    AddedEvent,
     ConnectionUnavailable,
     DeviceDescriptor,
     DeviceEvent,
     Downlink,
     DownlinkError,
-    EventType,
     JoinEvent,
     LocationEvent,
+    RemovedEvent,
     Unsubscribe,
+    UpdatedEvent,
     UplinkEvent,
     notify,
     subscribe,
 )
-from lorawan_connection._subscribers import Subscribers, deliver, inventory_event
+from lorawan_connection._subscribers import Subscribers
 
 from ._tts_api import Service, message
 
@@ -174,7 +176,9 @@ class TTSConnection:
     def _emit(
         self, event: DeviceEvent, previous: DeviceDescriptor | None = None
     ) -> None:
-        deliver(self._subscribers, self.devices, event, previous)
+        self._subscribers.deliver(
+            event, event.descriptor or self.devices.get(event.dev_eui), previous
+        )
 
     async def refresh(self) -> None:
         """Replace the device list from one complete registry scan and emit changes."""
@@ -226,13 +230,22 @@ class TTSConnection:
             self._ids = identifiers
             for eui, descriptor in previous.items():
                 if eui not in devices:
-                    self._emit(inventory_event(EventType.REMOVED, descriptor))
+                    self._emit(
+                        RemovedEvent(
+                            received_at=datetime.now(UTC), descriptor=descriptor
+                        )
+                    )
             for eui, descriptor in devices.items():
                 if eui not in previous:
-                    self._emit(inventory_event(EventType.ADDED, descriptor))
+                    self._emit(
+                        AddedEvent(received_at=datetime.now(UTC), descriptor=descriptor)
+                    )
                 elif descriptor != previous[eui]:
                     self._emit(
-                        inventory_event(EventType.UPDATED, descriptor), previous[eui]
+                        UpdatedEvent(
+                            received_at=datetime.now(UTC), descriptor=descriptor
+                        ),
+                        previous[eui],
                     )
             self._completed_refresh = self._refresh_generation
 

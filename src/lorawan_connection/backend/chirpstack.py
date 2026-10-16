@@ -14,23 +14,25 @@ from google.protobuf.message import Message
 
 from lorawan_connection import (
     AckEvent,
+    AddedEvent,
     ConnectionUnavailable,
     DeviceDescriptor,
     DeviceEvent,
     Downlink,
     DownlinkError,
-    EventType,
     JoinEvent,
     LocationEvent,
     LogEvent,
+    RemovedEvent,
     StatusEvent,
     TxAckEvent,
     Unsubscribe,
+    UpdatedEvent,
     UplinkEvent,
     notify,
     subscribe,
 )
-from lorawan_connection._subscribers import Subscribers, deliver, inventory_event
+from lorawan_connection._subscribers import Subscribers
 
 _LOGGER = logging.getLogger(__name__)
 _MESSAGES = {
@@ -332,7 +334,9 @@ class ChirpStackConnection:
     def _emit(
         self, event: DeviceEvent, previous: DeviceDescriptor | None = None
     ) -> None:
-        deliver(self._subscribers, self.devices, event, previous)
+        self._subscribers.deliver(
+            event, event.descriptor or self.devices.get(event.dev_eui), previous
+        )
 
     async def refresh(self) -> None:
         """Commit complete snapshots without blocking live activity during reads."""
@@ -348,12 +352,23 @@ class ChirpStackConnection:
                         task := self._streams.pop(eui, None)
                     ) is not None and task is not asyncio.current_task():
                         task.cancel()
-                    self._emit(inventory_event(EventType.REMOVED, descriptor))
+                    self._emit(
+                        RemovedEvent(
+                            received_at=datetime.now(UTC), descriptor=descriptor
+                        )
+                    )
             for eui, descriptor in snapshot.items():
                 if eui not in old:
-                    self._emit(inventory_event(EventType.ADDED, descriptor))
+                    self._emit(
+                        AddedEvent(received_at=datetime.now(UTC), descriptor=descriptor)
+                    )
                 elif old[eui] != descriptor:
-                    self._emit(inventory_event(EventType.UPDATED, descriptor), old[eui])
+                    self._emit(
+                        UpdatedEvent(
+                            received_at=datetime.now(UTC), descriptor=descriptor
+                        ),
+                        old[eui],
+                    )
                 if eui not in self._streams:
                     self._streams[eui] = asyncio.create_task(self._stream(eui))
 

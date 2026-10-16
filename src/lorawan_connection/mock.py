@@ -12,7 +12,6 @@ from .events import (
     DeviceDescriptor,
     DeviceEvent,
     EventType,
-    RemovedEvent,
 )
 
 
@@ -80,13 +79,11 @@ class MockConnection:
         self._network_id = event.network_id
         if event.type == EventType.REMOVED:
             del self.devices[dev_eui]
-        self._subscribers.emit(
+        self._subscribers.deliver(
             event,
             descriptor,
             previous,
-            build_removed=lambda retired: RemovedEvent(
-                received_at=event.received_at, descriptor=retired
-            ),
+            removed_at=event.received_at,
         )
 
     def disconnect(self) -> None:
