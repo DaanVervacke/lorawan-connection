@@ -48,14 +48,14 @@ Newly observed devices receive an `ADDED` event before their activity is deliver
 
 The internal API is a compatibility dependency, tested against ChirpStack 4.19.2 and
 Python bindings 4.19.0. It requires device event retention to be enabled. ChirpStack can
-send retained events when a stream opens, followed by live events. The backend
-records the local time before opening each device stream, with five seconds of leeway.
-It accepts server receipt timestamps at or after that time minus five seconds and
-drops older events. This also applies to devices discovered later.
+send retained events when a stream opens, followed by live events. The backend records
+the local time before opening each device stream. It accepts server receipt timestamps
+at or after that time minus five seconds and drops older events. This also applies to
+devices discovered later.
 
 Keep the client and ChirpStack clocks synchronized. The filter uses the Redis event
-ID's timestamp, not the sensor's clock. Clock differences can drop new events or
-admit retained ones. Missed telemetry is not recovered.
+ID's timestamp. Clock differences can drop new events or admit retained ones. Missed
+telemetry is not recovered.
 
 ## API reference
 
@@ -69,8 +69,8 @@ poll_interval=30, channel=None)` owns its channel, including an injected test ch
 | `await inventory()` | Read descriptors without starting streams or updating the current device list. |
 | `await async_connect()` | Read existing devices and start polling and live events. |
 | `await async_subscribe(*, brands, listener)` | Report matching existing devices, then live events. Return an unsubscribe function. `brands=None` includes all vendors. |
-| `on_disconnect(listener)` | Register a callback with no arguments; return an unsubscribe function. |
-| `await async_send_downlink(downlink)` | Validate device scope and enqueue application bytes; return the queue-item UUID. |
+| `on_disconnect(listener)` | Register a callback with no arguments. Return an unsubscribe function. |
+| `await async_send_downlink(downlink)` | Validate device scope and enqueue application bytes. Return the queue-item UUID. |
 | `await refresh()` | Refresh the connected device list. |
 | `await close()` | Stop tasks, await cleanup, and close the channel. |
 | `devices` | Current devices, keyed by DevEUI. |
@@ -90,7 +90,7 @@ leeway does not guarantee initial readings.
 
 Callbacks run synchronously. Callbacks registered with `on_disconnect()` run after `available` becomes
 false. Create a new connection to recover. `AuthenticationError` reports rejected
-credentials or access scope; `ConnectionUnavailable` reports other subscription failures.
+credentials or access scope. `ConnectionUnavailable` reports other subscription failures.
 ChirpStack can return the same authentication error for an invalid key and missing
 permission. Discovery methods retain gRPC errors so callers can offer a tenant-ID fallback.
 
@@ -100,10 +100,10 @@ Downlinks use the public `DeviceService.Enqueue` gRPC method. The connection mus
 be connected, and the device must belong to its selected applications.
 Before enqueueing, the backend reads the device to check its current application.
 Use a tenant API key with write access for commands. A read-only key still supports
-device discovery and live events; attempted writes raise `DownlinkError`.
+device discovery and live events. Attempted writes raise `DownlinkError`.
 
 `Downlink(dev_eui, f_port, data, confirmed=False, expires_at=None)` contains plaintext
-application bytes. FPort must be 1–223. An optional expiry is a timezone-aware datetime.
+application bytes. FPort must be 1 to 223. An optional expiry is a timezone-aware datetime.
 ChirpStack owns encryption, frame counters, scheduling, and expiry. The helper never
 flushes existing commands or retries an ambiguous RPC result.
 
