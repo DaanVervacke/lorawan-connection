@@ -1,7 +1,6 @@
 """In-memory connection for device-library tests and capture replays."""
 
 from collections.abc import Callable, Sequence
-from datetime import UTC, datetime
 
 from ._subscribers import Subscribers
 from .callbacks import Unsubscribe, notify, subscribe
@@ -33,7 +32,7 @@ class MockConnection:
         self._disconnect_listeners: list[Callable[[None], None]] = []
         self._queue_id = 0
         for descriptor in devices:
-            self.emit(AddedEvent(received_at=datetime.now(UTC), descriptor=descriptor))
+            self.emit(AddedEvent(descriptor=descriptor))
 
     async def async_subscribe(
         self,

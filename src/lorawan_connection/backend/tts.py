@@ -230,23 +230,12 @@ class TTSConnection:
             self._ids = identifiers
             for eui, descriptor in previous.items():
                 if eui not in devices:
-                    self._emit(
-                        RemovedEvent(
-                            received_at=datetime.now(UTC), descriptor=descriptor
-                        )
-                    )
+                    self._emit(RemovedEvent(descriptor=descriptor))
             for eui, descriptor in devices.items():
                 if eui not in previous:
-                    self._emit(
-                        AddedEvent(received_at=datetime.now(UTC), descriptor=descriptor)
-                    )
+                    self._emit(AddedEvent(descriptor=descriptor))
                 elif descriptor != previous[eui]:
-                    self._emit(
-                        UpdatedEvent(
-                            received_at=datetime.now(UTC), descriptor=descriptor
-                        ),
-                        previous[eui],
-                    )
+                    self._emit(UpdatedEvent(descriptor=descriptor), previous[eui])
             self._completed_refresh = self._refresh_generation
 
     async def _lifecycle(self) -> None:

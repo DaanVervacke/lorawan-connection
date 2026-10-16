@@ -34,10 +34,7 @@ class Subscribers:
             if subscriber not in self._items:
                 break
             if brands is None or (descriptor.stack, descriptor.brand_id) in brands:
-                notify(
-                    [listener],
-                    AddedEvent(received_at=datetime.now(UTC), descriptor=descriptor),
-                )
+                notify([listener], AddedEvent(descriptor=descriptor))
 
         def unsubscribe() -> None:
             if subscriber in self._items:

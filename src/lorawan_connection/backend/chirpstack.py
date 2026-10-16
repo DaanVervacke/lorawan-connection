@@ -352,23 +352,12 @@ class ChirpStackConnection:
                         task := self._streams.pop(eui, None)
                     ) is not None and task is not asyncio.current_task():
                         task.cancel()
-                    self._emit(
-                        RemovedEvent(
-                            received_at=datetime.now(UTC), descriptor=descriptor
-                        )
-                    )
+                    self._emit(RemovedEvent(descriptor=descriptor))
             for eui, descriptor in snapshot.items():
                 if eui not in old:
-                    self._emit(
-                        AddedEvent(received_at=datetime.now(UTC), descriptor=descriptor)
-                    )
+                    self._emit(AddedEvent(descriptor=descriptor))
                 elif old[eui] != descriptor:
-                    self._emit(
-                        UpdatedEvent(
-                            received_at=datetime.now(UTC), descriptor=descriptor
-                        ),
-                        old[eui],
-                    )
+                    self._emit(UpdatedEvent(descriptor=descriptor), old[eui])
                 if eui not in self._streams:
                     self._streams[eui] = asyncio.create_task(self._stream(eui))
 
